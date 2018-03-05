@@ -1,0 +1,32 @@
+{
+  "name": "MV to Anki",
+  "description": "Converte as dicas em cards do Anki.",
+  "options_page": "options.html",
+  "version": "1.0",
+  "background": {
+    "page": "background.html"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "icon-16.png",
+      "24": "icon-24.png",
+      "32": "icon-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+        "matches": [
+            "http://www.mairovergara.com/*"
+        ],
+        "js": [          
+            "content.bundle.js"               
+        ]
+    }
+],
+  "icons": {
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
