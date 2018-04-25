@@ -30,6 +30,6 @@ if (window == top) {
             );
         }
         console.log("Cards found: " + cards.length);
-        sendResponse(cards);     
+        sendResponse({cards: cards, url:window.location.href });     
     });
 }

@@ -4,18 +4,19 @@ import '../img/icon-32.png'
 import '../img/icon-48.png'
 import '../img/icon-128.png'
 
-import { saveAs } from 'file-saver';
 import AnkiExport from 'anki-apkg-export';
 
 var loading = false;
+var pageUrl = 'http://www.mairovergara.com';
 
 chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
     chrome.browserAction.disable(tabId);
     if (change.status == "complete") {
         chrome.tabs.sendMessage(tabId, {}, function (message) {
-            if (message && message.length > 0) {
+            var cards = message.cards;
+            if (cards && cards.length > 0) {
                 chrome.browserAction.enable(tabId);
-                setBadge('' + message.length, tabId);
+                setBadge('' + cards.length, tabId);
             }
         });
     }
@@ -23,18 +24,21 @@ chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
 
 chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.sendMessage(tab.id, {}, function (message) {
-        if (message) {
+        var cards = message.cards;
+        pageUrl = message.url;
+        if (cards) {
             var loadInterval = setLoading(tab.id);
-            var cards = message;
             console.log(cards);
             const apkg = new AnkiExport(getDeckName(), getTemplate());
-            Promise.all(cards.map(function (card) {
-                return loadCard(card, apkg)
-            }))
+            Promise.all(cards.map(function (card) { return loadCard(card, apkg) }))
                 .then(function () {
                     apkg.save()
                         .then(zip => {
-                            saveAs(zip, "download.apkg");
+                            var blobUrl = URL.createObjectURL(zip);
+                            chrome.downloads.download({
+                                url: blobUrl,
+                                filename: "dowload.apkg"
+                            });
                             clearInterval(loadInterval);
                             setBadge(cards.length + '', tab.id);
                         })
@@ -49,7 +53,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 });
 
 function getDeckName() {
-    return "English Expressions";
+    return "EN - English Expressions";
 }
 
 function loadCard(card, apkg) {
@@ -87,15 +91,32 @@ function setLoading(tabId) {
 
 function getTemplate() {
     return {
-        'questionFormat' : '{{Front}}',
-        'answerFormat': '{{FrontSide}}\n\n<hr id="answer">\n\n{{Back}}',
-        'css': 
+        'questionFormat': '{{Front}}',
+        'answerFormat': '{{FrontSide}}\n\n<hr id="answer">\n\n{{Back}} <div class="source">Fonte: <a class="source-link" href="' + pageUrl + '">mairovergara.com</a></div>',
+        'css':
             `.card {\n 
                 font-family: arial;\n 
                 font-size: 20px;\n 
                 text-align: center;\n 
                 color: black;\n
                 background-color: white;\n
+            }\n
+            .source {\n
+                margin: 20px;\n
+                font-size:12px;\n
+                font-style: italic;\n
+                color: #555;\n
+            }\n
+            .source-link {\n
+                color: #66c;\n
+                text-decoration: none;\n
+            }\n
+            u {\n
+                text-decoration: none;\n
+                font-weight: bold;\n
+                color: #06d;\n
             }\n`
     };
 }
+
+console.log('alterado');
