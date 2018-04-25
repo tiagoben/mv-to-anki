@@ -9,6 +9,10 @@ import AnkiExport from 'anki-apkg-export';
 var loading = false;
 var pageUrl = 'http://www.mairovergara.com';
 
+chrome.runtime.onInstalled.addListener(function () {
+    chrome.storage.sync.set({ deckname: "EN - English Expressions" });
+});
+
 chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
     chrome.browserAction.disable(tabId);
     if (change.status == "complete") {
@@ -28,33 +32,31 @@ chrome.browserAction.onClicked.addListener(function (tab) {
         pageUrl = message.url;
         if (cards) {
             var loadInterval = setLoading(tab.id);
-            console.log(cards);
-            const apkg = new AnkiExport(getDeckName(), getTemplate());
-            Promise.all(cards.map(function (card) { return loadCard(card, apkg) }))
-                .then(function () {
-                    apkg.save()
-                        .then(zip => {
-                            var blobUrl = URL.createObjectURL(zip);
-                            chrome.downloads.download({
-                                url: blobUrl,
-                                filename: "dowload.apkg"
+
+            chrome.storage.sync.get('deckname', function (data) {
+                const apkg = new AnkiExport(data.deckname, getTemplate());
+                Promise.all(cards.map(function (card) { return loadCard(card, apkg) }))
+                    .then(function () {
+                        apkg.save()
+                            .then(zip => {
+                                var blobUrl = URL.createObjectURL(zip);
+                                chrome.downloads.download({
+                                    url: blobUrl,
+                                    filename: data.deckname + ".apkg"
+                                });
+                                clearInterval(loadInterval);
+                                setBadge(cards.length + '', tab.id);
+                            })
+                            .catch(err => {
+                                console.log(err.stack || err);
+                                clearInterval(loadInterval);
+                                setBadge(cards.length + '', tab.id);
                             });
-                            clearInterval(loadInterval);
-                            setBadge(cards.length + '', tab.id);
-                        })
-                        .catch(err => {
-                            console.log(err.stack || err);
-                            clearInterval(loadInterval);
-                            setBadge(cards.length + '', tab.id);
-                        });
-                });
+                    });
+            });
         }
     });
 });
-
-function getDeckName() {
-    return "EN - English Expressions";
-}
 
 function loadCard(card, apkg) {
     return new Promise(function (resolve) {

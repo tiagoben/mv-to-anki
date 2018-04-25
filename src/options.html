@@ -5,5 +5,22 @@
   <title></title>
 </head>
 <body>
+  <div class="container">
+    <h1>Opções</h1>
+    <div class="shadow p-3 mb-5 bg-white rounded">
+      <br>
+      <div>
+        Nome do baralho atual:
+        <h4 id="deckname" class="bd-highlight ml-2"></h4>
+      </div>
+      <br>
+      <div class="form-group">
+        <label for="input-deckname">Novo nome: </label>
+        <input type="text" name="input-deckname" id="input-deckname" class="form-control">
+        <small id="decknameHelp" class="form-text text-muted">Nome do baralho como será salvo no seu Anki.</small>
+      </div>
+      <button id="save" class="btn btn-outline-primary">Salvar</button>
+    </div>
+  </div>
 </body>
 </html>
