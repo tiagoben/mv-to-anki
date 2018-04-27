@@ -1,5 +1,4 @@
 import "../css/options.css";
-import * as $ from 'jquery';
 
 function updateLabel() {
     chrome.storage.sync.get('deckname', function (data) {

@@ -10,17 +10,20 @@ var loading = false;
 var pageUrl = 'http://www.mairovergara.com';
 
 chrome.runtime.onInstalled.addListener(function () {
-    chrome.storage.sync.set({ deckname: "EN - English Expressions" });
+    chrome.storage.sync.get('deckname', function (data) {
+        if(!data.deckname){
+            chrome.storage.sync.set({ deckname: "EN - English Expressions" });
+        }
+    });
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
     chrome.browserAction.disable(tabId);
     if (change.status == "complete") {
         chrome.tabs.sendMessage(tabId, {}, function (message) {
-            var cards = message.cards;
-            if (cards && cards.length > 0) {
+            if (message && message.cards && message.cards.length > 0) {
                 chrome.browserAction.enable(tabId);
-                setBadge('' + cards.length, tabId);
+                setBadge('' + message.cards.length, tabId);
             }
         });
     }
@@ -28,9 +31,9 @@ chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
 
 chrome.browserAction.onClicked.addListener(function (tab) {
     chrome.tabs.sendMessage(tab.id, {}, function (message) {
-        var cards = message.cards;
-        pageUrl = message.url;
-        if (cards) {
+        if (message) {
+            var cards = message.cards;
+            pageUrl = message.url;
             var loadInterval = setLoading(tab.id);
 
             chrome.storage.sync.get('deckname', function (data) {
