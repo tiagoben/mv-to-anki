@@ -2,7 +2,7 @@
   "name": "MV to Anki",
   "description": "Converte as dicas em cards do Anki.",
   "options_page": "options.html",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "background": {
     "page": "background.html"
   },

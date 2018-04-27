@@ -4,7 +4,7 @@ import '../img/icon-32.png'
 import '../img/icon-48.png'
 import '../img/icon-128.png'
 
-import AnkiExport from 'anki-apkg-export';
+import AnkiExport from './anki/AnkiExport';
 
 var loading = false;
 var pageUrl = 'http://www.mairovergara.com';
@@ -34,7 +34,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
             var loadInterval = setLoading(tab.id);
 
             chrome.storage.sync.get('deckname', function (data) {
-                const apkg = new AnkiExport(data.deckname, getTemplate());
+                const apkg = new AnkiExport(data.deckname);
                 Promise.all(cards.map(function (card) { return loadCard(card, apkg) }))
                     .then(function () {
                         apkg.save()
@@ -64,13 +64,21 @@ function loadCard(card, apkg) {
         httpRequest.open("GET", card.soundUrl);
         httpRequest.responseType = "blob";
         httpRequest.onload = function () {
+            var sName = limitSoundName(card.soundName);
             var resp = this.response;
-            apkg.addMedia(card.soundName, resp);
-            apkg.addCard(card.sentence + ' [sound:' + card.soundName + ']', card.trad);
+            apkg.addMedia(sName, resp);
+            apkg.addCard(card.sentence + '<br>[sound:' + sName + ']', card.trad, pageUrl);
             resolve()
         }
         httpRequest.send()
     });
+}
+
+function limitSoundName(name) {
+    if (name.length > 100) {
+        name = name.substring(0, 95) + '.mp3';
+    }
+    return name;
 }
 
 function setBadge(text, tabId) {
@@ -90,35 +98,3 @@ function setLoading(tabId) {
         a = (a + 1) % dots.length;
     }, 200);
 }
-
-function getTemplate() {
-    return {
-        'questionFormat': '{{Front}}',
-        'answerFormat': '{{FrontSide}}\n\n<hr id="answer">\n\n{{Back}} <div class="source">Fonte: <a class="source-link" href="' + pageUrl + '">mairovergara.com</a></div>',
-        'css':
-            `.card {\n 
-                font-family: arial;\n 
-                font-size: 20px;\n 
-                text-align: center;\n 
-                color: black;\n
-                background-color: white;\n
-            }\n
-            .source {\n
-                margin: 20px;\n
-                font-size:12px;\n
-                font-style: italic;\n
-                color: #555;\n
-            }\n
-            .source-link {\n
-                color: #66c;\n
-                text-decoration: none;\n
-            }\n
-            u {\n
-                text-decoration: none;\n
-                font-weight: bold;\n
-                color: #06d;\n
-            }\n`
-    };
-}
-
-console.log('alterado');
